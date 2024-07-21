@@ -1,0 +1,20 @@
+#saw workflow
+
+#NeSI doesn't support Singularity so I need to do all the singularity commands with Apptainer
+#I think you can just just Singularity still?? maybe has to do with building it? vs loading it via docker
+#do this in the interactive environment
+
+#module load Apptainer/1.2.5
+module load Singularity/3.11.3
+
+#first I have to change the CACHE directory
+cd /nesi/nobackup/vuw03876/stomics/
+mkdir .s_cachedir
+mkdir .s_tmpdir
+
+export SINGULARITY_TMPDIR=/nesi/nobackup/vuw03876/stomics/.s_tmpdir
+setfacl -b "$SINGULARITY_TMPDIR"
+export SINGULARITY_CACHEDIR=/nesi/nobackup/vuw03876/stomics/.s_cachedir
+
+#build the SAW pipeline
+singularity pull SAW_7.1.sif docker://stomics/saw:07.1.1
