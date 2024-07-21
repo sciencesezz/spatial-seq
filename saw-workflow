@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+#This a Slurm script for the stomics SAW pipeline
+
+#SBATCH --job-name=stomics-saw
+#SBATCH --account=vuw03876
+#SBATCH --time=18:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=24
+#SBATCH --mem=256GB
+#SBATCH --output=/nesi/nobackup/vuw03876/stomics/stomics-test%j.out
+#SBATCH --error=/nesi/nobackup/vuw03876/stomics/stomics-test%j.err
+#SBATCH --mail-type=ALL
+#SBATCH --mail-type=TIME_LIMIT_80
+#SBATCH --mail-user=email
+module load Singularity/3.11.3
+
+export SINGULARITY_TMPDIR=/nesi/nobackup/vuw03876/stomics/.s_tmpdir
+setfacl -b "$SINGULARITY_TMPDIR"
+export SINGULARITY_CACHEDIR=/nesi/nobackup/vuw03876/stomics/.s_cachedir
+
+BASE_PATH=/nesi/nobackup/vuw03876/stomics
+MASK=$BASE_PATH/2week-slide1/mask-files/2week-slide1/A02579B2.barcodeToPos.h5
+FQ1_1=$BASE_PATH/2week-slide1/data/L01/FastQ/V350235716_L01_read_1.fq.gz
+FQ1_2=$BASE_PATH/2week-slide1/data/L02/FastQ/V350235716_L02_read_1.fq.gz
+FQ1_3=$BASE_PATH/2week-slide1/data/L03/FastQ/V350235716_L03_read_1.fq.gz
+FQ1_4=$BASE_PATH/2week-slide1/data/L04/FastQ/V350235716_L04_read_1.fq.gz
+FQ2_1=$BASE_PATH/2week-slide1/data/L01/FastQ/V350235716_L01_read_2.fq.gz
+FQ2_2=$BASE_PATH/2week-slide1/data/L02/FastQ/V350235716_L02_read_2.fq.gz
+FQ2_3=$BASE_PATH/2week-slide1/data/L03/FastQ/V350235716_L03_read_2.fq.gz
+FQ2_4=$BASE_PATH/2week-slide1/data/L04/FastQ/V350235716_L04_read_2.fq.gz
+INDEX=$BASE_PATH/Reference/mouse/STAR_SJ100
+GENOME=$BASE_PATH/Reference/mouse/genome/Mus_musculus.GRCm38.dna.primary_assembly.fa
+SPECIES=Mus_musculus
+TISSUE=Ovary
+ANNOTATION=$BASE_PATH/Reference/mouse/genes/Mus_musculus.GRCm38.93.gtf
+OUTPUT=$BASE_PATH/2week-slide1/saw-output
+IPR=$BASE_PATH/2week-slide1/image/A02579B2_20240327_102733/A02579B2_SC_20240327_102733_3.0.2.ipr
+TAR=$BASE_PATH/2week-slide1/image/A02579B2_20240327_102733/A02579B2_SC_20240327_102733_3.0.2.tar.gz
+
+bash $BASE_PATH/stereoPipeline_v7.1.sh -splitCount 1 -maskFile $MASK -fq1 $FQ1_1,$FQ1_2,$FQ1_3,$FQ1_4 -fq2 $FQ2_1,$FQ2_2,$FQ2_3,$FQ2_4 -refIndex $INDEX -genomeFile $GENOME -speciesName $SPECIES -tissueType $TISSUE -annotationFile $ANNOTATION -outDir $OUTPUT -imageRecordFile $IPR -imageCompressedFile $TAR -doCellBin Y -rRNAremoveY -threads 16 -sif $BASE_PATH/SAW_7.1.sif
