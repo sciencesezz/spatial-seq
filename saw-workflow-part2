@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+#This a Slurm script for the stomics SAW pipeline
+#this is for manual registration
+
+#SBATCH --job-name=stomics-saw
+#SBATCH --account=vuw03876
+#SBATCH --time=00:30:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=24
+#SBATCH --mem=256GB
+#SBATCH --output=/nesi/nobackup/vuw03876/stomics/stomics-part2%j.out
+#SBATCH --error=/nesi/nobackup/vuw03876/stomics/stomics-part2%j.err
+#SBATCH --mail-type=ALL
+#SBATCH --mail-type=TIME_LIMIT_80
+#SBATCH --mail-user=sarah.sczelecki@vuw.ac.nz
+
+module load Singularity/3.11.3
+
+export SINGULARITY_TMPDIR=/nesi/nobackup/vuw03876/stomics/.s_tmpdir
+setfacl -b "$SINGULARITY_TMPDIR"
+export SINGULARITY_CACHEDIR=/nesi/nobackup/vuw03876/stomics/.s_cachedir
+
+ulimit -n 10240
+ulimit -v 33170449147
+
+BASE_PATH=/nesi/nobackup/vuw03876/stomics
+mkdir $BASE_PATH/2week-slide1/saw-output-pt2-2
+
+sif=/nesi/nobackup/vuw03876/stomics/SAW_7.1.sif
+dataDir=$BASE_PATH/2week-slide1/saw-output	# notice that dataDir in step2 should be the outDir from step1, to get basic information like statistics
+iprDir=$BASE_PATH/2week-slide1/saw-output/03.register/A02579B2_SC_20240618_210025_3.0.2.ipr  # when QCPass, changed the directory to processed ipr from register module
+tarDir=$BASE_PATH/2week-slide1/image/A02579B2_20240327_102733/A02579B2_SC_20240327_102733_3.0.2.tar.gz
+outDir=$BASE_PATH/2week-slide1/saw-output-pt2-2
+registJsonDir=$BASE_PATH/2week-slide1/saw-output/03.register/20240627092257.regist.json
+
+export SINGULARITY_BIND=${dataDir},${iprDir},${outDir},${registJsonDir}
+export PATH=/nesi/nobackup/vuw03876/stomics/.s_cachedir/bin:$PATH
+bash $BASE_PATH/stereoPipeline_v7.0_manual_part2.sh -SN A02579B2 -dataDir ${dataDir} -registJson ${registJsonDir} -speciesName Mus_musculus -tissueType Ovary -imageRecordFile ${iprDir} -imageCompressedFile ${tarDir} -sif ${sif} -doCellBin Y -threads 16 -outDir ${outDir}
